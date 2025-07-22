@@ -49,6 +49,11 @@ require (
 	golang.org/x/oauth2 v0.18.0
 	golang.org/x/term v0.31.0
 	golang.org/x/text v0.24.0
+	gorm.io/driver/mysql v1.5.7
+	gorm.io/driver/postgres v1.5.9
+	gorm.io/driver/sqlite v1.5.6
+	// ML and AI dependencies
+	gorm.io/gorm v1.25.12
 )
 
 require (
@@ -72,6 +77,8 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.4 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
