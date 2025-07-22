@@ -1,0 +1,146 @@
+# GPU-enabled Dockerfile for AI-enhanced Osmedeus with CUDA support
+# Multi-stage build for optimized AI-enhanced Osmedeus with GPU acceleration
+FROM nvidia/cuda:12.1-devel-ubuntu22.04 AS gpu-builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    git \
+    gcc \
+    g++ \
+    make \
+    pkg-config \
+    ca-certificates \
+    tzdata \
+    sqlite3 \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Go
+ENV GO_VERSION=1.23.0
+RUN wget -O go.tar.gz "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+    && tar -C /usr/local -xzf go.tar.gz \
+    && rm go.tar.gz
+
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application with GPU support
+RUN CGO_ENABLED=1 GOOS=linux go build \
+    -a -installsuffix cgo \
+    -ldflags="-w -s" \
+    -tags "gpu cuda" \
+    -o osmedeus .
+
+# Stage 2: GPU runtime with CUDA support
+FROM nvidia/cuda:12.1-runtime-ubuntu22.04 AS gpu-runtime
+
+# Install runtime dependencies including AI tools and Python
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    tzdata \
+    sqlite3 \
+    curl \
+    bash \
+    git \
+    nmap \
+    masscan \
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    redis-server \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symlink for python
+RUN ln -s /usr/bin/python3.11 /usr/bin/python
+
+# Install essential Python packages for AI integration with GPU support
+RUN pip3 install --no-cache-dir \
+    torch==2.1.0+cu121 \
+    torchvision==0.16.0+cu121 \
+    torchaudio==2.1.0+cu121 \
+    --index-url https://download.pytorch.org/whl/cu121
+
+RUN pip3 install --no-cache-dir \
+    requests==2.31.0 \
+    redis==4.6.0 \
+    numpy==1.24.3 \
+    pandas==2.1.0 \
+    scikit-learn==1.3.0 \
+    transformers==4.33.2 \
+    accelerate==0.21.0
+
+# Create non-root user
+RUN useradd -m -u 1000 -s /bin/bash osmedeus
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary from builder stage
+COPY --from=gpu-builder /app/osmedeus /usr/local/bin/osmedeus
+
+# Copy configuration and templates
+COPY --chown=osmedeus:osmedeus core/ /app/core/
+COPY --chown=osmedeus:osmedeus cmd/ /app/cmd/
+COPY --chown=osmedeus:osmedeus libs/ /app/libs/
+COPY --chown=osmedeus:osmedeus server/ /app/server/
+COPY --chown=osmedeus:osmedeus database/ /app/database/
+COPY --chown=osmedeus:osmedeus execution/ /app/execution/
+COPY --chown=osmedeus:osmedeus provider/ /app/provider/
+COPY --chown=osmedeus:osmedeus utils/ /app/utils/
+
+# Create necessary directories for AI-enhanced features with GPU support
+RUN mkdir -p \
+    /app/data \
+    /app/logs \
+    /app/workspaces \
+    /app/models \
+    /app/ai-cache \
+    /app/ml-models \
+    /app/gpu-cache \
+    /app/cuda-models \
+    /app/exploit-templates \
+    /app/behavioral-data \
+    && chown -R osmedeus:osmedeus /app
+
+# Add AI service configuration
+COPY --chown=osmedeus:osmedeus docker/config/ai-services.yaml /app/config/ai-services.yaml
+
+# GPU-enhanced health check
+HEALTHCHECK --interval=30s --timeout=15s --start-period=45s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health/live && \
+        curl -f http://localhost:8000/api/health/ready && \
+        curl -f http://localhost:8000/api/ai/health && \
+        nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | head -1 || exit 1
+
+# Switch to non-root user
+USER osmedeus
+
+# Expose ports (main API and AI services)
+EXPOSE 8000 8001
+
+# Set environment variables for GPU-enabled AI services
+ENV AI_SERVICES_ENABLED=true
+ENV GPU_ACCELERATION=true
+ENV CUDA_VISIBLE_DEVICES=all
+ENV ML_INFERENCE_URL=http://ml-inference:5000
+ENV AI_CLASSIFIER_URL=http://ai-asset-classifier:5001
+ENV BEHAVIORAL_ANALYZER_URL=http://behavioral-analyzer:5002
+ENV EXPLOIT_GENERATOR_URL=http://exploit-generator:5003
+ENV REDIS_URL=redis://redis:6379
+ENV TORCH_CUDA_ARCH_LIST="6.0;6.1;7.0;7.5;8.0;8.6"
+
+# Default command with GPU support
+CMD ["osmedeus", "server", "--ai-enhanced", "--gpu"]

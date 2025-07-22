@@ -1,0 +1,110 @@
+services:
+  # Main Osmedeus Application
+  osmedeus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: osmedeus-main
+    restart: unless-stopped
+    ports:
+      - "8000:8000"  # Web UI
+      - "8080:8080"  # API
+    volumes:
+      - ./data:/app/data
+      - ./workspaces:/app/workspaces
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - osmedeus-base:/home/osmedeus/osmedeus-base
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - DB_PATH=/app/data/osmedeus.db
+      - HOME=/home/osmedeus
+      - OSMEDEUS_BASE_PATH=/home/osmedeus/osmedeus-base
+    depends_on:
+      - redis
+    networks:
+      - osmedeus-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for caching and message queuing
+  redis:
+    image: redis:7-alpine
+    container_name: osmedeus-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - osmedeus-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL Database (optional, for production use)
+  postgres:
+    image: postgres:15-alpine
+    container_name: osmedeus-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=osmedeus
+      - POSTGRES_USER=osmedeus
+      - POSTGRES_PASSWORD=osmedeus_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - osmedeus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U osmedeus -d osmedeus"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    profiles:
+      - production
+
+  # Nginx Reverse Proxy (optional, for production use)
+  nginx:
+    image: nginx:alpine
+    container_name: osmedeus-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - osmedeus
+    networks:
+      - osmedeus-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - production
+
+networks:
+  osmedeus-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis-data:
+    driver: local
+  postgres-data:
+    driver: local
+  osmedeus-base:
+    driver: local
