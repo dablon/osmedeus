@@ -1,6 +1,6 @@
 package main
 
-import "github.com/j3ssie/osmedeus/cmd"
+import "github.com/dablon/osmedeus/cmd"
 
 func main() {
 	cmd.Execute()

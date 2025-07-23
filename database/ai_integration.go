@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
-	"github.com/j3ssie/osmedeus/utils"
+	"github.com/dablon/osmedeus/utils"
 )
 
 // AIDatabase provides AI-enhanced database operations

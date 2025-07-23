@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/j3ssie/osmedeus/database"
-	"github.com/j3ssie/osmedeus/ml"
+	"github.com/dablon/osmedeus/database"
+	"github.com/dablon/osmedeus/ml"
 )
 
 func main() {

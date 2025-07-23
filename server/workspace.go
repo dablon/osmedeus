@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/j3ssie/osmedeus/database"
-	"github.com/j3ssie/osmedeus/utils"
+	"github.com/dablon/osmedeus/database"
+	"github.com/dablon/osmedeus/utils"
 	"github.com/thoas/go-funk"
 )
 

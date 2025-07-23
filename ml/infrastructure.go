@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/j3ssie/osmedeus/database"
-	"github.com/j3ssie/osmedeus/utils"
+	"github.com/dablon/osmedeus/database"
+	"github.com/dablon/osmedeus/utils"
 )
 
 // MLInfrastructure manages the machine learning infrastructure

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/j3ssie/osmedeus/libs"
-	"github.com/j3ssie/osmedeus/utils"
+	"github.com/dablon/osmedeus/libs"
+	"github.com/dablon/osmedeus/utils"
 	jsoniter "github.com/json-iterator/go"
 )
 

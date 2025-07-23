@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/j3ssie/osmedeus/database"
-	"github.com/j3ssie/osmedeus/utils"
+	"github.com/dablon/osmedeus/database"
+	"github.com/dablon/osmedeus/utils"
 )
 
 // PreprocessingPipeline manages data preprocessing for ML models

@@ -1,4 +1,4 @@
-module github.com/j3ssie/osmedeus
+module github.com/dablon/osmedeus
 
 go 1.23.0
 

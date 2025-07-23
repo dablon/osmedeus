@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/j3ssie/osmedeus/libs"
+	"github.com/dablon/osmedeus/libs"
 	"github.com/kyokomi/emoji"
 	"github.com/sirupsen/logrus"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
